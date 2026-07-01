@@ -1,7 +1,6 @@
 {
-  "buildCommand": "npm install",
   "installCommand": "npm install",
-  "outputDirectory": "dist",
+  "outputDirectory": ".",
   "nodeVersion": "18",
   "cloudFunctions": {
     "nodejs": {
@@ -17,6 +16,7 @@
     }
   },
   "rewrites": [
+    { "source": "/", "destination": "/src/vpn.html" },
     { "source": "/api/vpn/connect", "destination": "/cloud-functions/api/vpn/connect" },
     { "source": "/api/vpn/disconnect", "destination": "/cloud-functions/api/vpn/disconnect" },
     { "source": "/api/vpn/country", "destination": "/cloud-functions/api/vpn/country" }
@@ -24,19 +24,17 @@
   "caches": [
     {
       "source": "/api/vpn/country",
-      "headers": {
-        "Cache-Control": "public, max-age=300"
-      }
+      "cacheTtl": 300
     }
   ],
   "headers": [
     {
       "source": "/api/vpn/*",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      }
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
     }
   ]
 }
