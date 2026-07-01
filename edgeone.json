@@ -1,6 +1,6 @@
 {
   "nodeVersion": "18",
-  "outputDirectory": "dist",
+  "outputDirectory": ".",
   "cloudFunctions": {
     "nodejs": {
       "/api/get-url": {
