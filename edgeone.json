@@ -16,10 +16,7 @@
     }
   },
   "rewrites": [
-    { "source": "/", "destination": "/src/vpn.html" },
-    { "source": "/api/vpn/connect", "destination": "/cloud-functions/api/vpn/connect" },
-    { "source": "/api/vpn/disconnect", "destination": "/cloud-functions/api/vpn/disconnect" },
-    { "source": "/api/vpn/country", "destination": "/cloud-functions/api/vpn/country" }
+    { "source": "/", "destination": "/src/vpn.html" }
   ],
   "caches": [
     {

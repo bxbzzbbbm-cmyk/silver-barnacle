@@ -1,4 +1,4 @@
-export async function onRequestGet(context) {
+export async function onRequest(context) {
   try {
     const { VPN_API_BASE_URL, VPN_API_KEY } = context.env || {};
 
@@ -20,6 +20,7 @@ export async function onRequestGet(context) {
         { id: "kr", name: "South Korea" },
         { id: "in", name: "India" },
         { id: "br", name: "Brazil" },
+        { id: "md", name: "Moldova" },
       ];
       return new Response(JSON.stringify({ countries: mockCountries, mock: true }), {
         status: 200,

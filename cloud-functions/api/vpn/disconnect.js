@@ -1,4 +1,10 @@
-export async function onRequestPost(context) {
+export async function onRequest(context) {
+  if (context.request.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
   try {
     const { VPN_API_BASE_URL, VPN_API_KEY } = context.env || {};
 
