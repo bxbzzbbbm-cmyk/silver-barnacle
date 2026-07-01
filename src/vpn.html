@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VPN Manager</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      padding: 20px;
+    }
+
+    .card {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(100, 116, 139, 0.3);
+      border-radius: 16px;
+      padding: 32px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .card h1 {
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+      color: #f8fafc;
+    }
+
+    .card .subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 28px;
+    }
+
+    .status-panel {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .status-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 28px;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .status-icon.disconnected {
+      background: rgba(239, 68, 68, 0.2);
+      border: 2px solid rgba(239, 68, 68, 0.5);
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.3);
+    }
+
+    .status-icon.connected {
+      background: rgba(34, 197, 94, 0.2);
+      border: 2px solid rgba(34, 197, 94, 0.5);
+      box-shadow: 0 0 16px rgba(34, 197, 94, 0.3);
+    }
+
+    .status-label {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .status-label.connected { color: #22c55e; }
+    .status-label.disconnected { color: #ef4444; }
+
+    .status-details {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+
+    .status-details span {
+      display: block;
+    }
+
+    .status-details .value {
+      color: #cbd5e1;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(100, 116, 139, 0.4);
+      background: rgba(15, 23, 42, 0.8);
+      color: #e2e8f0;
+      font-size: 15px;
+      appearance: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      margin-bottom: 20px;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s, opacity 0.2s;
+    }
+
+    button:active { transform: scale(0.97); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-connect {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    .btn-connect:hover:not(:disabled) { background: #2563eb; }
+
+    .btn-disconnect {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-disconnect:hover:not(:disabled) { background: rgba(239, 68, 68, 0.25); }
+
+    .error-toast {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 500px) {
+      .container { padding: 12px; }
+      .card { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>VPN Manager</h1>
+      <p class="subtitle">Secure your connection with one click</p>
+
+      <div class="status-panel">
+        <div class="status-icon disconnected" id="statusIcon">⚡</div>
+        <div class="status-label disconnected" id="statusLabel">Disconnected</div>
+        <div class="status-details" id="statusDetails"></div>
+      </div>
+
+      <label for="countrySelect">Select Country</label>
+      <select id="countrySelect" disabled>
+        <option value="">Loading countries...</option>
+      </select>
+
+      <div class="button-group">
+        <button class="btn-connect" id="connectBtn" disabled>Connect</button>
+        <button class="btn-disconnect" id="disconnectBtn" disabled>Disconnect</button>
+      </div>
+
+      <div class="error-toast" id="errorToast"></div>
+    </div>
+  </div>
+
+  <script>
+    const countrySelect = document.getElementById("countrySelect");
+    const connectBtn = document.getElementById("connectBtn");
+    const disconnectBtn = document.getElementById("disconnectBtn");
+    const statusIcon = document.getElementById("statusIcon");
+    const statusLabel = document.getElementById("statusLabel");
+    const statusDetails = document.getElementById("statusDetails");
+    const errorToast = document.getElementById("errorToast");
+
+    let isConnected = false;
+    let connectionData = null;
+
+    function showError(msg) {
+      errorToast.textContent = msg;
+      errorToast.style.display = "block";
+      setTimeout(() => { errorToast.style.display = "none"; }, 5000);
+    }
+
+    function setStatus(connected, data) {
+      isConnected = connected;
+      connectionData = data;
+      statusIcon.className = connected ? "status-icon connected" : "status-icon disconnected";
+      statusIcon.textContent = connected ? "🔒" : "⚡";
+      statusLabel.className = connected ? "status-label connected" : "status-label disconnected";
+      statusLabel.textContent = connected ? "Connected" : "Disconnected";
+
+      if (connected && data) {
+        statusDetails.innerHTML =
+          `<span>Country: <span class="value">${data.country || data.server || "N/A"}</span></span>` +
+          `<span>IP: <span class="value">${data.ip || "N/A"}</span></span>` +
+          `<span>Protocol: <span class="value">${data.protocol || "N/A"}</span></span>` +
+          `<span>Bandwidth: <span class="value">${data.bandwidth || "N/A"}</span></span>` +
+          `<span>Since: <span class="value">${data.connectedAt ? new Date(data.connectedAt).toLocaleTimeString() : "N/A"}</span></span>`;
+      } else if (!connected && data) {
+        statusDetails.innerHTML =
+          `<span>Disconnected at: <span class="value">${data.disconnectedAt ? new Date(data.disconnectedAt).toLocaleTimeString() : "N/A"}</span></span>`;
+      } else {
+        statusDetails.innerHTML = "";
+      }
+
+      connectBtn.disabled = connected;
+      disconnectBtn.disabled = !connected;
+      countrySelect.disabled = connected;
+    }
+
+    async function loadCountries() {
+      try {
+        const res = await fetch("/api/vpn/country");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        countrySelect.innerHTML = "";
+        data.countries.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = c.name;
+          countrySelect.appendChild(opt);
+        });
+        countrySelect.disabled = false;
+        connectBtn.disabled = isConnected;
+      } catch (err) {
+        showError("Failed to load countries: " + err.message);
+        countrySelect.innerHTML = "<option value=\"\">Error loading countries</option>";
+      }
+    }
+
+    async function connectVPN() {
+      const country = countrySelect.value;
+      if (!country) { showError("Please select a country"); return; }
+
+      connectBtn.disabled = true;
+      connectBtn.innerHTML = '<span class="loading"></span>Connecting...';
+
+      try {
+        const res = await fetch("/api/vpn/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ country }),
+        });
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || `HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        setStatus(true, data);
+      } catch (err) {
+        showError("Connection failed: " + err.message);
+        setStatus(false, null);
+      } finally {
+        connectBtn.innerHTML = "Connect";
+      }
+    }
+
+    async function disconnectVPN() {
+      disconnectBtn.disabled = true;
+      disconnectBtn.innerHTML = '<span class="loading"></span>Disconnecting...';
+
+      try {
+        const res = await fetch("/api/vpn/disconnect", { method: "POST" });
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || `HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        setStatus(false, data);
+      } catch (err) {
+        showError("Disconnection failed: " + err.message);
+      } finally {
+        disconnectBtn.innerHTML = "Disconnect";
+      }
+    }
+
+    connectBtn.addEventListener("click", connectVPN);
+    disconnectBtn.addEventListener("click", disconnectVPN);
+
+    setStatus(false, null);
+    loadCountries();
+  </script>
+</body>
+</html>
