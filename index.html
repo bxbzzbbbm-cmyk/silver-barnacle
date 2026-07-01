@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAM Checker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      text-align: center;
+      padding: 40px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+      max-width: 480px;
+      width: 90%;
+    }
+    h1 { font-size: 2rem; margin-bottom: 8px; }
+    .subtitle { font-size: 0.95rem; color: #b0b0cc; margin-bottom: 32px; }
+    .ram-display {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: #00e5ff;
+      margin: 24px 0;
+      transition: all 0.3s ease;
+    }
+    .ram-unit { font-size: 1.2rem; color: #80cbc4; }
+    .options {
+      font-size: 0.85rem;
+      color: #9e9eb8;
+      margin-bottom: 28px;
+    }
+    .btn {
+      padding: 14px 36px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: linear-gradient(90deg, #00e5ff, #1de9b6);
+      color: #1a1a2e;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 20px rgba(0, 229, 255, 0.4);
+    }
+    .btn:active { transform: scale(0.97); }
+    .error { color: #ff5252; margin-top: 16px; font-size: 0.9rem; }
+    .loading { opacity: 0.6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>RAM Checker</h1>
+    <p class="subtitle">Random RAM size generator</p>
+    <div id="ramResult" class="ram-display">--<span class="ram-unit"> MB</span></div>
+    <p id="optionsInfo" class="options">Options: 512 / 1024 / 1536 / 2048 / 4096 MB</p>
+    <button class="btn" id="checkBtn" onclick="checkRam()">Check RAM</button>
+    <p id="errorMsg" class="error"></p>
+  </div>
+
+  <script>
+    async function checkRam() {
+      const btn = document.getElementById('checkBtn');
+      const display = document.getElementById('ramResult');
+      const errorEl = document.getElementById('errorMsg');
+
+      btn.disabled = true;
+      btn.textContent = 'Checking...';
+      display.classList.add('loading');
+      errorEl.textContent = '';
+
+      try {
+        const res = await fetch('/api/get-ram');
+        if (!res.ok) throw new Error('Server returned ' + res.status);
+        const data = await res.json();
+        display.classList.remove('loading');
+        display.innerHTML = data.ram_size_mb + '<span class="ram-unit"> ' + data.unit + '</span>';
+      } catch (err) {
+        display.classList.remove('loading');
+        display.innerHTML = '--<span class="ram-unit"> MB</span>';
+        errorEl.textContent = 'Error: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Check RAM';
+      }
+    }
+  </script>
+</body>
+</html>
