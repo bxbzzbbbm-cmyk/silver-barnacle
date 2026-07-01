@@ -1,0 +1,12 @@
+{
+  "nodeVersion": "18",
+  "outputDirectory": "dist",
+  "cloudFunctions": {
+    "nodejs": {
+      "/api/get-url": {
+        "path": "/api/get-url",
+        "entry": "api/get-url.js"
+      }
+    }
+  }
+}
