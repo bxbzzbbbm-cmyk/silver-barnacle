@@ -22,7 +22,7 @@
     }
   },
   "kv": {
-    "HOSTING_ACCOUNTS": {},
-    "HOSTING_FILES": {}
+    "HOSTING_ACCOUNTS": { "namespace": "hosting_accounts" },
+    "HOSTING_FILES": { "namespace": "hosting_files" }
   }
 }
