@@ -3,10 +3,26 @@
   "outputDirectory": ".",
   "cloudFunctions": {
     "nodejs": {
-      "/api/get-url": {
-        "path": "/api/get-url",
-        "entry": "api/get-url.js"
+      "/api/accounts": {
+        "path": "/api/accounts",
+        "entry": "api/accounts.js"
+      },
+      "/api/files": {
+        "path": "/api/files",
+        "entry": "api/files.js"
+      },
+      "/api/deploy": {
+        "path": "/api/deploy",
+        "entry": "api/deploy.js"
+      },
+      "/host": {
+        "path": "/host",
+        "entry": "host/[[default]].js"
       }
     }
+  },
+  "kv": {
+    "HOSTING_ACCOUNTS": {},
+    "HOSTING_FILES": {}
   }
 }

@@ -3,87 +3,549 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>URL Checker</title>
+  <title>PHP Web Hosting Platform</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f5f5f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background: #f0f2f5;
       min-height: 100vh;
     }
+    .header {
+      background: #2c3e50;
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header h1 { font-size: 20px; }
+    .header .logout-btn {
+      background: transparent;
+      color: #fff;
+      border: 1px solid #fff;
+      border-radius: 4px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .header .logout-btn:hover { background: rgba(255,255,255,0.15); }
+    .container { max-width: 800px; margin: 24px auto; padding: 0 16px; }
     .card {
       background: #fff;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 32px;
-      max-width: 400px;
-      width: 100%;
-      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 24px;
+      margin-bottom: 16px;
     }
-    h1 { font-size: 24px; margin-bottom: 24px; color: #333; }
-    .url-display {
-      font-size: 16px;
+    .card h2 { font-size: 18px; color: #333; margin-bottom: 16px; }
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: 1px solid #ddd;
+      background: #f9f9f9;
       color: #555;
-      margin: 16px 0;
-      padding: 12px;
-      background: #f0f0f0;
-      border-radius: 4px;
-      word-break: break-all;
-      min-height: 44px;
+      font-size: 14px;
+      border-radius: 4px 4px 0 0;
+      border-bottom: none;
     }
-    button {
+    .tab.active {
+      background: #fff;
+      color: #4a90d9;
+      border-color: #4a90d9;
+      font-weight: 600;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    label { display: block; font-size: 14px; color: #555; margin-bottom: 4px; margin-top: 12px; }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    input:focus { outline: none; border-color: #4a90d9; }
+    button.primary {
       background: #4a90d9;
       color: #fff;
       border: none;
       border-radius: 4px;
       padding: 10px 20px;
-      font-size: 16px;
+      font-size: 14px;
       cursor: pointer;
       margin-top: 16px;
     }
-    button:hover { background: #357abd; }
-    button:disabled { background: #aaa; cursor: not-allowed; }
-    .open-link {
-      display: inline-block;
+    button.primary:hover { background: #357abd; }
+    button.primary:disabled { background: #aaa; cursor: not-allowed; }
+    button.danger {
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    button.danger:hover { background: #c0392b; }
+    button.success {
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
       margin-top: 16px;
+    }
+    button.success:hover { background: #219a52; }
+    .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: #777; font-size: 14px; }
+    .info-value { color: #333; font-size: 14px; font-weight: 500; }
+    .site-url {
       color: #4a90d9;
       text-decoration: none;
-      font-size: 16px;
+      font-size: 14px;
     }
-    .open-link:hover { text-decoration: underline; }
-    .open-link.hidden { display: none; }
+    .site-url:hover { text-decoration: underline; }
+    textarea.code-editor {
+      width: 100%;
+      min-height: 200px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: "Fira Code", "Consolas", "Monaco", monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      resize: vertical;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    textarea.code-editor:focus { outline: none; border-color: #4a90d9; }
+    .file-list { list-style: none; }
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
+    .file-name {
+      font-family: "Consolas", monospace;
+      color: #333;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .file-name:hover { color: #4a90d9; }
+    .message {
+      padding: 10px 14px;
+      border-radius: 4px;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .message.error { background: #fdecea; color: #e74c3c; }
+    .message.success { background: #e8f8f0; color: #27ae60; }
+    .hidden { display: none; }
+    .filename-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .filename-row input { flex: 1; }
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-badge.deployed { background: #e8f8f0; color: #27ae60; }
+    .status-badge.not-deployed { background: #fef3e2; color: #e67e22; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>URL Checker</h1>
-    <div class="url-display" id="urlDisplay">Loading...</div>
-    <button id="fetchBtn" onclick="fetchUrl()">Get Random URL</button>
-    <a class="open-link hidden" id="openLink" href="#" target="_blank" rel="noopener noreferrer">Open URL</a>
+
+  <!-- Auth Section -->
+  <div id="authSection">
+    <div class="container">
+      <div class="card" style="text-align:center; margin-top:60px;">
+        <h1 style="font-size:24px; margin-bottom:8px;">PHP Web Hosting</h1>
+        <p style="color:#777; font-size:14px; margin-bottom:24px;">Create your site, edit PHP files, deploy instantly.</p>
+
+        <div class="tabs" style="justify-content:center;">
+          <div class="tab active" onclick="switchAuthTab('signup')">Sign Up</div>
+          <div class="tab" onclick="switchAuthTab('login')">Log In</div>
+        </div>
+
+        <div id="signupTab" class="tab-content active">
+          <label>Username</label>
+          <input type="text" id="signupUsername" placeholder="Choose a username (becomes your subdomain)">
+          <label>Password</label>
+          <input type="password" id="signupPassword" placeholder="Choose a password">
+          <div id="signupMsg" class="message hidden"></div>
+          <button class="primary" onclick="doSignup()">Create Account</button>
+        </div>
+
+        <div id="loginTab" class="tab-content">
+          <label>Username</label>
+          <input type="text" id="loginUsername" placeholder="Your username">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="Your password">
+          <div id="loginMsg" class="message hidden"></div>
+          <button class="primary" onclick="doLogin()">Log In</button>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- Dashboard Section -->
+  <div id="dashboardSection" class="hidden">
+    <div class="header">
+      <h1>PHP Hosting — <span id="dashUsername"></span></h1>
+      <button class="logout-btn" onclick="doLogout()">Log Out</button>
+    </div>
+    <div class="container">
+
+      <!-- Dashboard Tab -->
+      <div class="tabs">
+        <div class="tab active" onclick="switchDashTab('overview')">Dashboard</div>
+        <div class="tab" onclick="switchDashTab('files')">Files</div>
+      </div>
+
+      <div id="overviewTab" class="tab-content active">
+        <div class="card">
+          <h2>Account Info</h2>
+          <div class="info-row">
+            <span class="info-label">Account ID</span>
+            <span class="info-value" id="dashAccountId"></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Username</span>
+            <span class="info-value" id="dashUsernameInfo"></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Subdomain</span>
+            <span class="info-value" id="dashSubdomain"></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Created</span>
+            <span class="info-value" id="dashCreatedAt"></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Site URL</span>
+            <a class="site-url" id="dashSiteUrl" href="#" target="_blank"></a>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Status</span>
+            <span id="dashDeployStatus"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Deploy</h2>
+          <p style="font-size:14px; color:#777; margin-bottom:12px;">Publish all draft files to make your site live.</p>
+          <button class="success" onclick="doDeploy()">Deploy Site</button>
+          <div id="deployMsg" class="message hidden" style="margin-top:12px;"></div>
+        </div>
+      </div>
+
+      <div id="filesTab" class="tab-content">
+        <div class="card">
+          <h2>File Editor</h2>
+          <div class="filename-row">
+            <input type="text" id="fileFilename" placeholder="e.g. index.php, style.css">
+            <button class="primary" style="margin-top:0;" onclick="loadFile()">Load</button>
+            <button class="primary" style="margin-top:0;" onclick="saveFile()">Save</button>
+          </div>
+          <label style="margin-top:12px;">Code</label>
+          <textarea class="code-editor" id="fileContent" placeholder="Write your PHP, HTML, CSS, JS, or text here..."></textarea>
+          <div id="fileMsg" class="message hidden" style="margin-top:8px;"></div>
+        </div>
+
+        <div class="card">
+          <h2>Your Files</h2>
+          <ul class="file-list" id="fileList"></ul>
+          <div id="fileListMsg" class="message hidden"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <script>
-    async function fetchUrl() {
-      const btn = document.getElementById('fetchBtn');
-      const display = document.getElementById('urlDisplay');
-      const link = document.getElementById('openLink');
-      btn.disabled = true;
-      display.textContent = 'Fetching...';
-      try {
-        const res = await fetch('/api/get-url');
-        const data = await res.json();
-        display.textContent = data.url;
-        link.href = data.url;
-        link.classList.remove('hidden');
-      } catch (e) {
-        display.textContent = 'Error fetching URL';
-        link.classList.add('hidden');
-      }
-      btn.disabled = false;
+    let session = JSON.parse(localStorage.getItem('hosting_session') || 'null');
+
+    function showMsg(el, text, type) {
+      el.textContent = text;
+      el.className = 'message ' + type;
     }
-    fetchUrl();
+
+    function switchAuthTab(tab) {
+      document.querySelectorAll('#authSection .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('#authSection .tab-content').forEach(tc => tc.classList.remove('active'));
+      if (tab === 'signup') {
+        document.querySelector('#authSection .tab:first-child').classList.add('active');
+        document.getElementById('signupTab').classList.add('active');
+      } else {
+        document.querySelector('#authSection .tab:last-child').classList.add('active');
+        document.getElementById('loginTab').classList.add('active');
+      }
+    }
+
+    function switchDashTab(tab) {
+      document.querySelectorAll('#dashboardSection .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('#dashboardSection .tab-content').forEach(tc => tc.classList.remove('active'));
+      if (tab === 'overview') {
+        document.querySelector('#dashboardSection .tab:first-child').classList.add('active');
+        document.getElementById('overviewTab').classList.add('active');
+        loadDashboard();
+      } else {
+        document.querySelector('#dashboardSection .tab:last-child').classList.add('active');
+        document.getElementById('filesTab').classList.add('active');
+        loadFileList();
+      }
+    }
+
+    function showDashboard() {
+      document.getElementById('authSection').classList.add('hidden');
+      document.getElementById('dashboardSection').classList.remove('hidden');
+      loadDashboard();
+    }
+
+    function showAuth() {
+      document.getElementById('dashboardSection').classList.add('hidden');
+      document.getElementById('authSection').classList.remove('hidden');
+    }
+
+    async function doSignup() {
+      const username = document.getElementById('signupUsername').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      const msgEl = document.getElementById('signupMsg');
+      if (!username || !password) {
+        showMsg(msgEl, 'Username and password required', 'error');
+        return;
+      }
+      try {
+        const res = await fetch('/api/accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'signup', username, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showMsg(msgEl, data.error || 'Signup failed', 'error');
+          return;
+        }
+        session = data;
+        localStorage.setItem('hosting_session', JSON.stringify(session));
+        showDashboard();
+      } catch (e) {
+        showMsg(msgEl, 'Network error', 'error');
+      }
+    }
+
+    async function doLogin() {
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const msgEl = document.getElementById('loginMsg');
+      if (!username || !password) {
+        showMsg(msgEl, 'Username and password required', 'error');
+        return;
+      }
+      try {
+        const res = await fetch('/api/accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'login', username, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showMsg(msgEl, data.error || 'Login failed', 'error');
+          return;
+        }
+        session = data;
+        localStorage.setItem('hosting_session', JSON.stringify(session));
+        showDashboard();
+      } catch (e) {
+        showMsg(msgEl, 'Network error', 'error');
+      }
+    }
+
+    function doLogout() {
+      session = null;
+      localStorage.removeItem('hosting_session');
+      showAuth();
+    }
+
+    async function loadDashboard() {
+      if (!session) return;
+      document.getElementById('dashUsername').textContent = session.username;
+      document.getElementById('dashAccountId').textContent = session.accountId;
+      document.getElementById('dashUsernameInfo').textContent = session.username;
+      document.getElementById('dashSubdomain').textContent = session.subdomain;
+      document.getElementById('dashCreatedAt').textContent = session.createdAt;
+      document.getElementById('dashSiteUrl').textContent = '/host/' + session.subdomain + '/';
+      document.getElementById('dashSiteUrl').href = '/host/' + session.subdomain + '/';
+
+      try {
+        const res = await fetch('/api/deploy?accountId=' + session.accountId);
+        if (res.ok) {
+          const manifest = await res.json();
+          document.getElementById('dashDeployStatus').innerHTML =
+            '<span class="status-badge deployed">Deployed</span> — ' + manifest.deployedAt + ' (' + manifest.fileCount + ' files)';
+        } else {
+          document.getElementById('dashDeployStatus').innerHTML = '<span class="status-badge not-deployed">Not deployed</span>';
+        }
+      } catch (e) {
+        document.getElementById('dashDeployStatus').innerHTML = '<span class="status-badge not-deployed">Unknown</span>';
+      }
+    }
+
+    async function loadFileList() {
+      if (!session) return;
+      const listEl = document.getElementById('fileList');
+      const msgEl = document.getElementById('fileListMsg');
+      listEl.innerHTML = '';
+      try {
+        const res = await fetch('/api/files?accountId=' + session.accountId);
+        const data = await res.json();
+        if (!res.ok) {
+          showMsg(msgEl, data.error || 'Failed to load files', 'error');
+          return;
+        }
+        msgEl.className = 'message hidden';
+        if (data.files.length === 0) {
+          listEl.innerHTML = '<li style="color:#777; font-size:14px;">No files yet. Create one above.</li>';
+          return;
+        }
+        data.files.forEach(f => {
+          const li = document.createElement('li');
+          li.className = 'file-item';
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'file-name';
+          nameSpan.textContent = f.filename;
+          nameSpan.onclick = () => {
+            document.getElementById('fileFilename').value = f.filename;
+            loadFile();
+          };
+          const delBtn = document.createElement('button');
+          delBtn.className = 'danger';
+          delBtn.textContent = 'Delete';
+          delBtn.onclick = () => deleteFile(f.filename);
+          li.appendChild(nameSpan);
+          li.appendChild(delBtn);
+          listEl.appendChild(li);
+        });
+      } catch (e) {
+        showMsg(msgEl, 'Network error', 'error');
+      }
+    }
+
+    async function loadFile() {
+      if (!session) return;
+      const filename = document.getElementById('fileFilename').value.trim();
+      const msgEl = document.getElementById('fileMsg');
+      if (!filename) {
+        showMsg(msgEl, 'Enter a filename first', 'error');
+        return;
+      }
+      try {
+        const res = await fetch('/api/files?accountId=' + session.accountId + '&filename=' + encodeURIComponent(filename));
+        const data = await res.json();
+        if (!res.ok) {
+          showMsg(msgEl, data.error || 'File not found', 'error');
+          return;
+        }
+        document.getElementById('fileContent').value = data.content || '';
+        showMsg(msgEl, 'File loaded', 'success');
+      } catch (e) {
+        showMsg(msgEl, 'Network error', 'error');
+      }
+    }
+
+    async function saveFile() {
+      if (!session) return;
+      const filename = document.getElementById('fileFilename').value.trim();
+      const content = document.getElementById('fileContent').value;
+      const msgEl = document.getElementById('fileMsg');
+      if (!filename) {
+        showMsg(msgEl, 'Enter a filename', 'error');
+        return;
+      }
+      try {
+        const res = await fetch('/api/files', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId: session.accountId, action: 'create', filename, content }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showMsg(msgEl, data.error || 'Save failed', 'error');
+          return;
+        }
+        showMsg(msgEl, 'File saved', 'success');
+        loadFileList();
+      } catch (e) {
+        showMsg(msgEl, 'Network error', 'error');
+      }
+    }
+
+    async function deleteFile(filename) {
+      if (!session) return;
+      try {
+        const res = await fetch('/api/files', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId: session.accountId, action: 'delete', filename }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.error || 'Delete failed');
+          return;
+        }
+        if (document.getElementById('fileFilename').value.trim() === filename) {
+          document.getElementById('fileContent').value = '';
+          document.getElementById('fileFilename').value = '';
+        }
+        loadFileList();
+      } catch (e) {
+        alert('Network error');
+      }
+    }
+
+    async function doDeploy() {
+      if (!session) return;
+      const msgEl = document.getElementById('deployMsg');
+      try {
+        const res = await fetch('/api/deploy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId: session.accountId }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showMsg(msgEl, data.error || 'Deploy failed', 'error');
+          return;
+        }
+        showMsg(msgEl, 'Deployed! Site live at ' + data.siteUrl, 'success');
+        loadDashboard();
+      } catch (e) {
+        showMsg(msgEl, 'Network error', 'error');
+      }
+    }
+
+    // Auto-login if session exists
+    if (session) {
+      showDashboard();
+    }
   </script>
 </body>
 </html>
