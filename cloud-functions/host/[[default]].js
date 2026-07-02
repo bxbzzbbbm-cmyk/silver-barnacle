@@ -1,5 +1,35 @@
-const ACCOUNTS = context => context.env.HOSTING_ACCOUNTS;
-const FILES = context => context.env.HOSTING_FILES;
+const accountsStore = new Map();
+const filesStore = new Map();
+
+function wrapMapAsKV(map) {
+  return {
+    async get(key) {
+      const val = map.get(key);
+      return val !== undefined ? val : null;
+    },
+    async put(key, value) {
+      map.set(key, value);
+    },
+    async delete(key) {
+      map.delete(key);
+    },
+    async list({ prefix } = {}) {
+      const keys = [];
+      for (const k of map.keys()) {
+        if (!prefix || k.startsWith(prefix)) {
+          keys.push({ name: k });
+        }
+      }
+      return { keys };
+    },
+  };
+}
+
+function getKV(env, bindingName, fallbackMap) {
+  const binding = env[bindingName];
+  if (binding && typeof binding.get === 'function') return binding;
+  return wrapMapAsKV(fallbackMap);
+}
 
 const CONTENT_TYPES = {
   '.php': 'text/x-php',
@@ -10,8 +40,8 @@ const CONTENT_TYPES = {
 };
 
 export async function onRequestGet(context) {
-  const akv = ACCOUNTS(context);
-  const fkv = FILES(context);
+  const akv = getKV(context.env, 'HOSTING_ACCOUNTS', accountsStore);
+  const fkv = getKV(context.env, 'HOSTING_FILES', filesStore);
   const url = new URL(context.request.url);
   const pathParts = url.pathname.replace(/^\/host\//, '').split('/');
   const subdomain = pathParts[0];

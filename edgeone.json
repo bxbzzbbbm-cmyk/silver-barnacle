@@ -20,9 +20,5 @@
         "entry": "host/[[default]].js"
       }
     }
-  },
-  "kv": {
-    "HOSTING_ACCOUNTS": { "namespace": "hosting_accounts" },
-    "HOSTING_FILES": { "namespace": "hosting_files" }
   }
 }
