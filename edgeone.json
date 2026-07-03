@@ -1,11 +1,25 @@
 {
   "nodeVersion": "18",
-  "outputDirectory": ".",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "cloudFunctions": {
     "nodejs": {
-      "/api/get-url": {
-        "path": "/api/get-url",
-        "entry": "api/get-url.js"
+      "/api/vpn/connect": {
+        "path": "/api/vpn/connect",
+        "entry": "api/vpn/connect.js"
+      },
+      "/api/vpn/countries": {
+        "path": "/api/vpn/countries",
+        "entry": "api/vpn/countries.js"
+      },
+      "/api/vpn/disconnect": {
+        "path": "/api/vpn/disconnect",
+        "entry": "api/vpn/disconnect.js"
+      },
+      "/api/stripe/create-subscription": {
+        "path": "/api/stripe/create-subscription",
+        "entry": "api/stripe/create-subscription.js"
       }
     }
   }
